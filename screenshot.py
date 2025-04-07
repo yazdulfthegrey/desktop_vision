@@ -15,18 +15,23 @@ app =Flask(__name__)
 
 @app.route('/')
 def home():
-    seenobjects = kickstartmodel()
-    sentences = []
-    for object in seenobjects:
-        #print(object['position'])
-        sentences.append('I can see ' + str(object['object']) + ' at position:' + str(object['position']))
-        print('I can see ' + str(object['object']) + ' at position:' + str(object['position']))
-    return sentences
+    return 'Don\'t mind me, just watching your desktop :) '
     
 
 @app.route('/getseen')
 def getseen():
-    return "I can currently see" + currentlyseen
+    seenobjects = kickstartmodel()
+    seenthings = []
+    for object in seenobjects:
+        positionarr = []
+        for p in object['position']:
+            positionarr.append(str(p))
+        seenthing = {
+            "object": str(object['object']),
+            "position": positionarr
+        }
+        seenthings.append(seenthing)
+    return {"seenthings":seenthings}
 
 
 
@@ -44,17 +49,23 @@ def kickstartmodel():
     annotated_image = image.copy()
     annotated_image = sv.BoxAnnotator().annotate(annotated_image, detections)
     annotated_image = sv.LabelAnnotator().annotate(annotated_image, detections, labels)
-    sv.plot_image(annotated_image)
+    #sv.plot_image(annotated_image)
     currentlyseen = []
     for detect in detections:
         print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
+        posarr = []
+        arrtouse = detect[0]
+        arrtouse = arrtouse[num*4:(num*4)+4]
+        for d in arrtouse:
+            posarr.append(d)
         seenobject = {
-            'position': detect[0],
+            'position':detect[0],
             'object': labels[num]
         }
+        print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
     return currentlyseen
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=1984)
