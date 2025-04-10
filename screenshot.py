@@ -5,22 +5,25 @@ from PIL import Image
 from rfdetr import RFDETRBase
 from rfdetr.util.coco_classes import COCO_CLASSES
 import pyautogui as pyt
-import cv2
 from flask import Flask
+import time
 
 model = RFDETRBase()
+tracker = sv.ByteTrack()
 currentlyseen = []
+seenobjects = []
 
 app =Flask(__name__)
 
 @app.route('/')
 def home():
+    kickstartmodel()
     return 'Don\'t mind me, just watching your desktop :) '
     
 
 @app.route('/getseen')
 def getseen():
-    seenobjects = kickstartmodel()
+    #seenobjects = kickstartmodel()
     seenthings = []
     for object in seenobjects:
         positionarr = []
@@ -38,12 +41,13 @@ def getseen():
 def kickstartmodel():
     image = pyt.screenshot()
     detections = model.predict(image, threshold=0.5)
+    detections = tracker.update_with_detections(detections)
     num = 0
 
     labels = [
-        f"{COCO_CLASSES[class_id]} {confidence:.2f}"
-        for class_id, confidence
-        in zip(detections.class_id, detections.confidence)
+        f"#{tracker_id} {COCO_CLASSES[class_id]}"
+        for class_id, tracker_id
+        in zip(detections.class_id, detections.tracker_id)
     ]
 
     annotated_image = image.copy()
@@ -51,6 +55,7 @@ def kickstartmodel():
     annotated_image = sv.LabelAnnotator().annotate(annotated_image, detections, labels)
     #sv.plot_image(annotated_image)
     currentlyseen = []
+    seenobjects = []
     for detect in detections:
         print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
         posarr = []
@@ -65,7 +70,10 @@ def kickstartmodel():
         print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
-    return currentlyseen
+        seenobjects = currentlyseen
+        time.sleep(0.01)
+        kickstartmodel()
+        
 
 if __name__ == '__main__':
     app.run(port=1984)
