@@ -11,7 +11,6 @@ import time
 model = RFDETRBase()
 tracker = sv.ByteTrack()
 currentlyseen = []
-seenobjects = []
 
 app =Flask(__name__)
 
@@ -23,7 +22,7 @@ def home():
 
 @app.route('/getseen')
 def getseen():
-    #seenobjects = kickstartmodel()
+    seenobjects = kickstartmodel()
     seenthings = []
     for object in seenobjects:
         positionarr = []
@@ -55,9 +54,8 @@ def kickstartmodel():
     annotated_image = sv.LabelAnnotator().annotate(annotated_image, detections, labels)
     #sv.plot_image(annotated_image)
     currentlyseen = []
-    seenobjects = []
     for detect in detections:
-        print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
+        #print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
         posarr = []
         arrtouse = detect[0]
         arrtouse = arrtouse[num*4:(num*4)+4]
@@ -71,8 +69,10 @@ def kickstartmodel():
         currentlyseen.append(seenobject)
         num = num + 1
         seenobjects = currentlyseen
-        time.sleep(0.01)
-        kickstartmodel()
+
+    return currentlyseen
+        #time.sleep(0.01)
+        #kickstartmodel()
         
 
 if __name__ == '__main__':
