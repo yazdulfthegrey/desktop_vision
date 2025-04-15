@@ -7,6 +7,8 @@ from rfdetr.util.coco_classes import COCO_CLASSES
 import pyautogui as pyt
 from flask import Flask
 import time
+from inference import get_model
+
 
 model = RFDETRBase()
 tracker = sv.ByteTrack()
