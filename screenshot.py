@@ -54,7 +54,7 @@ def kickstartmodel():
     annotated_image = image.copy()
     annotated_image = sv.BoxAnnotator().annotate(annotated_image, detections)
     annotated_image = sv.LabelAnnotator().annotate(annotated_image, detections, labels)
-    #sv.plot_image(annotated_image)
+    sv.plot_image(annotated_image)
     currentlyseen = []
     for detect in detections:
         #print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
@@ -67,7 +67,10 @@ def kickstartmodel():
             'position':detect[0],
             'object': labels[num]
         }
-        print(seenobject)
+        subimage = image.copy()
+        subimage = subimage.crop(detect[0])
+        sv.plot_image(subimage)
+        #print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
         seenobjects = currentlyseen
