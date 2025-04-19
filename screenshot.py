@@ -37,6 +37,25 @@ def getseen():
         seenthings.append(seenthing)
     return {"seenthings":seenthings}
 
+def scanforclothes(img):
+    model = get_model(model_id="clothing-detection-s4ioc/6", api_key='yNSAr9QG1hHBxEIMXJTu')
+    tracker = sv.ByteTrack()
+    currentlyseen = []
+
+    results = model.infer(img)[0]
+    detections = sv.Detections.from_inference(results)
+
+    # create supervision annotators
+    bounding_box_annotator = sv.BoxAnnotator()
+    label_annotator = sv.LabelAnnotator()
+
+    # annotate the image with our inference results
+    annotated_image = bounding_box_annotator.annotate(scene=img, detections=detections)
+    annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+
+    # display the image
+    sv.plot_image(annotated_image)
+
 
 
 def kickstartmodel():
@@ -69,7 +88,8 @@ def kickstartmodel():
         }
         subimage = image.copy()
         subimage = subimage.crop(detect[0])
-        sv.plot_image(subimage)
+        #sv.plot_image(subimage)
+        scanforclothes(subimage)
         #print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
