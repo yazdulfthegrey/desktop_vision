@@ -32,18 +32,21 @@ def getseen():
             positionarr.append(str(p))
         seenthing = {
             "object": str(object['object']),
-            "position": positionarr
+            "position": positionarr,
+            "clothesworn": object['clothesworn']
         }
         seenthings.append(seenthing)
     return {"seenthings":seenthings}
 
 def scanforclothes(img):
     model = get_model(model_id="clothing-detection-s4ioc/6", api_key='yNSAr9QG1hHBxEIMXJTu')
-    tracker = sv.ByteTrack()
-    currentlyseen = []
+    clothesworn = []
 
     results = model.infer(img)[0]
     detections = sv.Detections.from_inference(results)
+    for detect in detections:
+        print(detect[5]['class_name'])
+        clothesworn.append(detect[5]['class_name'])
 
     # create supervision annotators
     bounding_box_annotator = sv.BoxAnnotator()
@@ -54,7 +57,8 @@ def scanforclothes(img):
     annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
 
     # display the image
-    sv.plot_image(annotated_image)
+    #sv.plot_image(annotated_image)
+    return clothesworn
 
 
 
@@ -80,16 +84,16 @@ def kickstartmodel():
         posarr = []
         arrtouse = detect[0]
         arrtouse = arrtouse[num*4:(num*4)+4]
+        subimage = image.copy()
+        subimage = subimage.crop(detect[0])
+        clothesworn = scanforclothes(subimage)
         for d in arrtouse:
             posarr.append(d)
         seenobject = {
             'position':detect[0],
-            'object': labels[num]
+            'object': labels[num],
+            'clothesworn':clothesworn
         }
-        subimage = image.copy()
-        subimage = subimage.crop(detect[0])
-        #sv.plot_image(subimage)
-        scanforclothes(subimage)
         #print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
