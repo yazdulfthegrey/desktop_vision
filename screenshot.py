@@ -11,6 +11,8 @@ from inference import get_model
 
 
 model = RFDETRBase()
+clothemodel = get_model(model_id="clothing-detection-s4ioc/6", api_key='yNSAr9QG1hHBxEIMXJTu')
+firearmmodel = get_model(model_id="gun_detection-coyoc/1", api_key='yNSAr9QG1hHBxEIMXJTu')
 tracker = sv.ByteTrack()
 currentlyseen = []
 
@@ -33,19 +35,19 @@ def getseen():
         seenthing = {
             "object": str(object['object']),
             "position": positionarr,
-            "clothesworn": object['clothesworn']
+            "clothesworn": object['clothesworn'],
+            "armed": object['armed']
         }
         seenthings.append(seenthing)
     return {"seenthings":seenthings}
 
 def scanforclothes(img):
-    model = get_model(model_id="clothing-detection-s4ioc/6", api_key='yNSAr9QG1hHBxEIMXJTu')
     clothesworn = []
 
-    results = model.infer(img)[0]
+    results = clothemodel.infer(img)[0]
     detections = sv.Detections.from_inference(results)
     for detect in detections:
-        print(detect[5]['class_name'])
+        #print(detect[5]['class_name'])
         clothesworn.append(detect[5]['class_name'])
 
     # create supervision annotators
@@ -59,6 +61,27 @@ def scanforclothes(img):
     # display the image
     #sv.plot_image(annotated_image)
     return clothesworn
+
+def scanforfirearm(img):
+    firearmspotted = False
+
+    results = firearmmodel.infer(img)[0]
+    detections = sv.Detections.from_inference(results)
+    for detect in detections:
+        if (detect[5]['class_name'] == 'Gun'):
+            firearmspotted = True
+
+    # create supervision annotators
+    bounding_box_annotator = sv.BoxAnnotator()
+    label_annotator = sv.LabelAnnotator()
+
+    # annotate the image with our inference results
+    annotated_image = bounding_box_annotator.annotate(scene=img, detections=detections)
+    annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+
+    # display the image
+    #sv.plot_image(annotated_image)
+    return firearmspotted
 
 
 
@@ -87,12 +110,14 @@ def kickstartmodel():
         subimage = image.copy()
         subimage = subimage.crop(detect[0])
         clothesworn = scanforclothes(subimage)
+        firearm = scanforfirearm(subimage)
         for d in arrtouse:
             posarr.append(d)
         seenobject = {
             'position':detect[0],
             'object': labels[num],
-            'clothesworn':clothesworn
+            'clothesworn':clothesworn,
+            'armed': firearm
         }
         #print(seenobject)
         currentlyseen.append(seenobject)
