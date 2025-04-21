@@ -70,6 +70,7 @@ def scanforfirearm(img):
     for detect in detections:
         if (detect[5]['class_name'] == 'Gun'):
             firearmspotted = True
+            print('WEAPON')
 
     # create supervision annotators
     bounding_box_annotator = sv.BoxAnnotator()
@@ -100,7 +101,8 @@ def kickstartmodel():
     annotated_image = image.copy()
     annotated_image = sv.BoxAnnotator().annotate(annotated_image, detections)
     annotated_image = sv.LabelAnnotator().annotate(annotated_image, detections, labels)
-    sv.plot_image(annotated_image)
+
+    #sv.plot_image(annotated_image)
     currentlyseen = []
     for detect in detections:
         #print(str(detect[0]) + ' ' + str(labels[num])) #this gets data of each label and the person
@@ -108,9 +110,13 @@ def kickstartmodel():
         arrtouse = detect[0]
         arrtouse = arrtouse[num*4:(num*4)+4]
         subimage = image.copy()
-        subimage = subimage.crop(detect[0])
-        clothesworn = scanforclothes(subimage)
-        firearm = scanforfirearm(subimage)
+        if labels[num].__contains__('person'):
+            subimage = subimage.crop(detect[0])
+            clothesworn = scanforclothes(subimage)
+            firearm = scanforfirearm(subimage)
+        else:
+            clothesworn = []
+            firearm = False
         for d in arrtouse:
             posarr.append(d)
         seenobject = {
