@@ -8,6 +8,7 @@ import pyautogui as pyt
 from flask import Flask
 import time
 from inference import get_model
+import colorthief as ct
 
 
 model = RFDETRBase()
@@ -71,6 +72,11 @@ def scanforfirearm(img):
         if (detect[5]['class_name'] == 'Gun'):
             firearmspotted = True
             print('WEAPON')
+            # bounding_box_annotator = sv.BoxAnnotator()
+            # label_annotator = sv.LabelAnnotator()
+            # annotated_image = bounding_box_annotator.annotate(scene=img, detections=detections)
+            # annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+            # sv.plot_image(annotated_image)
 
     # create supervision annotators
     bounding_box_annotator = sv.BoxAnnotator()
@@ -83,6 +89,10 @@ def scanforfirearm(img):
     # display the image
     #sv.plot_image(annotated_image)
     return firearmspotted
+
+def getdominantcolour(img):
+    color = ct.ColorThief(img).get_color()
+    return color
 
 
 
