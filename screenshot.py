@@ -95,9 +95,27 @@ def getdominantcolour(img):
     return color
 
 
+@app.route('/getcentre')
+def getcentrecolour():
+    image = pyt.screenshot()
+    width, height = image.size
+    left = (width - width/3)/2
+    right = (width + width/3)/2
+    top = (width - width/2)/3
+    bottom = (width + width/2)/3
+    image = image.crop((left,top,right,bottom))
+    image.save("./centrescreenshot.png")
+    #sv.plot_image(image)
+    color = getdominantcolour("./centrescreenshot.png")
+    arr = []
+    for c in color:
+        arr.append(c)
+    return arr
+
+
 
 def kickstartmodel():
-    image = pyt.screenshot()
+    image = pyt.screenshot("./fullscreenshot.png")
     detections = model.predict(image, threshold=0.5)
     detections = tracker.update_with_detections(detections)
     num = 0
