@@ -1,15 +1,11 @@
-import io
-import requests
 import supervision as sv
 from PIL import Image
 from rfdetr import RFDETRBase
 from rfdetr.util.coco_classes import COCO_CLASSES
 import pyautogui as pyt
 from flask import Flask
-import time
 from inference import get_model
 import colorthief as ct
-
 
 model = RFDETRBase()
 clothemodel = get_model(model_id="clothing-detection-s4ioc/6", api_key='yNSAr9QG1hHBxEIMXJTu')
@@ -22,7 +18,7 @@ app =Flask(__name__)
 @app.route('/')
 def home():
     kickstartmodel()
-    return 'Don\'t mind me, just watching your desktop :) '
+    return 'Don\'t mind me, just watching your desktop :)'
     
 
 @app.route('/getseen')
@@ -37,7 +33,8 @@ def getseen():
             "object": str(object['object']),
             "position": positionarr,
             "clothesworn": object['clothesworn'],
-            "armed": object['armed']
+            "armed": object['armed'],
+            "colour": object['colour']
         }
         seenthings.append(seenthing)
     return {"seenthings":seenthings}
@@ -91,8 +88,11 @@ def scanforfirearm(img):
     return firearmspotted
 
 def getdominantcolour(img):
-    color = ct.ColorThief(img).get_color()
-    return color
+    colour = ct.ColorThief(img).get_color()
+    arr = []
+    for c in colour:
+        arr.append(c)
+    return arr
 
 
 @app.route('/getcentre')
@@ -106,18 +106,16 @@ def getcentrecolour():
     image = image.crop((left,top,right,bottom))
     image.save("./centrescreenshot.png")
     #sv.plot_image(image)
-    color = getdominantcolour("./centrescreenshot.png")
-    arr = []
-    for c in color:
-        arr.append(c)
-    return arr
-
+    colour = getdominantcolour("./centrescreenshot.png")
+    return {"colour": colour}
 
 
 def kickstartmodel():
     image = pyt.screenshot("./fullscreenshot.png")
-    detections = model.predict(image, threshold=0.5)
+    #image = cv2.imread("./fullscreenshot.png")
+    detections = model.predict(image, threshold=0.3)
     detections = tracker.update_with_detections(detections)
+    
     num = 0
 
     labels = [
@@ -138,8 +136,12 @@ def kickstartmodel():
         arrtouse = detect[0]
         arrtouse = arrtouse[num*4:(num*4)+4]
         subimage = image.copy()
+        subimage = subimage.crop(detect[0])
+        subimage.save("./tolookat.png")
+        colour = getdominantcolour("./tolookat.png")
+        clothesworn = []
+        firearm = False
         if labels[num].__contains__('person'):
-            subimage = subimage.crop(detect[0])
             clothesworn = scanforclothes(subimage)
             firearm = scanforfirearm(subimage)
         else:
@@ -151,7 +153,8 @@ def kickstartmodel():
             'position':detect[0],
             'object': labels[num],
             'clothesworn':clothesworn,
-            'armed': firearm
+            'armed': firearm,
+            'colour': colour
         }
         #print(seenobject)
         currentlyseen.append(seenobject)
@@ -161,6 +164,7 @@ def kickstartmodel():
     return currentlyseen
         #time.sleep(0.01)
         #kickstartmodel()
+
         
 
 if __name__ == '__main__':
