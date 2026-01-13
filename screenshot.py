@@ -135,18 +135,15 @@ def kickstartmodel():
         posarr = []
         arrtouse = detect[0]
         arrtouse = arrtouse[num*4:(num*4)+4]
-        subimage = image.copy()
-        subimage = subimage.crop(detect[0])
-        subimage.save("./tolookat.png")
+        #subimage = image.copy()
+        #subimage = subimage.crop(detect[0])
+        #subimage.save("./tolookat.png")
         colour = getdominantcolour("./tolookat.png")
         clothesworn = []
         firearm = False
-        if labels[num].__contains__('person'):
-            clothesworn = scanforclothes(subimage)
-            firearm = scanforfirearm(subimage)
-        else:
-            clothesworn = []
-            firearm = False
+        # if labels[num].__contains__('person'):
+        #     clothesworn = scanforclothes(subimage)
+        #     firearm = scanforfirearm(subimage)
         for d in arrtouse:
             posarr.append(d)
         seenobject = {
@@ -156,15 +153,11 @@ def kickstartmodel():
             'armed': firearm,
             'colour': colour
         }
-        #print(seenobject)
         currentlyseen.append(seenobject)
         num = num + 1
         seenobjects = currentlyseen
 
     return currentlyseen
-        #time.sleep(0.01)
-        #kickstartmodel()
-
         
 
 if __name__ == '__main__':
